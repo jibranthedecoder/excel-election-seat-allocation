@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Election Seat Allocation | Excel Project</title>
-  <meta name="description" content="Excel-based election seat allocation analysis using vote data, sorting, comparative figures, and ranking logic." />
+  <title>Election Seat Allocation | Excel Data Project</title>
+  <meta name="description" content="Interactive election seat allocation explorer built from Excel vote data, D'Hondt comparative figures, and validated result tables." />
   <style>
     :root {
       color-scheme: light dark;
@@ -15,6 +15,9 @@
       --muted: #64748b;
       --border: #e2e8f0;
       --accent: #0f172a;
+      --accent-soft: rgba(15, 23, 42, 0.08);
+      --good: #047857;
+      --warning: #b45309;
       --shadow: 0 20px 55px rgba(15, 23, 42, 0.08);
     }
 
@@ -27,6 +30,7 @@
         --muted: #a6b3c2;
         --border: #2b3542;
         --accent: #f8fafc;
+        --accent-soft: rgba(248, 250, 252, 0.10);
         --shadow: 0 20px 55px rgba(0, 0, 0, 0.28);
       }
     }
@@ -42,14 +46,15 @@
     }
 
     main {
-      width: min(1160px, calc(100% - 2rem));
+      width: min(1180px, calc(100% - 2rem));
       margin: 0 auto;
       padding: clamp(1.5rem, 4vw, 3rem) 0;
     }
 
     .hero,
     .card,
-    .chart-card {
+    .chart-card,
+    .explorer-shell {
       border: 1px solid var(--border);
       border-radius: 28px;
       background: color-mix(in srgb, var(--surface) 92%, transparent);
@@ -96,7 +101,8 @@
       font-size: clamp(1rem, 2vw, 1.15rem);
     }
 
-    .summary-card {
+    .summary-card,
+    .formula-card {
       display: grid;
       align-content: start;
       gap: 0.8rem;
@@ -121,7 +127,7 @@
 
     .metric strong {
       display: block;
-      font-size: clamp(1.4rem, 4vw, 2.1rem);
+      font-size: clamp(1.25rem, 4vw, 2rem);
       line-height: 1.05;
     }
 
@@ -133,6 +139,37 @@
       text-transform: uppercase;
     }
 
+    .actions,
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .button,
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.75rem;
+      padding: 0.7rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 800;
+      background: var(--surface);
+      cursor: pointer;
+    }
+
+    .button-primary,
+    .chip.is-active {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--surface);
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -141,7 +178,8 @@
     }
 
     .card,
-    .chart-card {
+    .chart-card,
+    .explorer-shell {
       padding: clamp(1rem, 2.5vw, 1.4rem);
     }
 
@@ -150,6 +188,82 @@
       padding-left: 1.25rem;
       color: var(--muted);
     }
+
+    .formula {
+      padding: 0.85rem;
+      border-radius: 16px;
+      background: var(--accent-soft);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      overflow-x: auto;
+    }
+
+    .explorer-shell {
+      margin-top: 1rem;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(160px, 0.35fr) minmax(160px, 0.35fr);
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 3rem;
+      padding: 0.72rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+    }
+
+    th,
+    td {
+      padding: 0.7rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      color: var(--muted);
+      background: var(--surface-soft);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    td.num,
+    th.num { text-align: right; }
+    tbody tr:last-child td { border-bottom: 0; }
+
+    .elected-badge {
+      display: inline-flex;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(4, 120, 87, 0.12);
+      color: var(--good);
+      font-size: 0.72rem;
+      font-weight: 900;
+    }
+
+    .muted { color: var(--muted); }
 
     .charts {
       display: grid;
@@ -179,35 +293,8 @@
       font-size: 0.92rem;
     }
 
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.7rem;
-      margin-top: 1rem;
-    }
-
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 2.75rem;
-      padding: 0.7rem 1rem;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 800;
-      background: var(--surface);
-    }
-
-    .button-primary {
-      border-color: var(--accent);
-      background: var(--accent);
-      color: var(--surface);
-    }
-
-    @media (max-width: 860px) {
-      .hero, .grid { grid-template-columns: 1fr; }
+    @media (max-width: 900px) {
+      .hero, .grid, .controls { grid-template-columns: 1fr; }
       h1 { max-width: 100%; }
     }
   </style>
@@ -216,24 +303,25 @@
   <main>
     <section class="hero">
       <div>
-        <p class="eyebrow">Excel / election analysis</p>
+        <p class="eyebrow">Excel / data analysis</p>
         <h1>Election Seat Allocation</h1>
-        <p class="lead">Spreadsheet-based analysis for calculating elected candidates from vote data. The project focuses on sorting, grouping, comparative figures, ranking, and presenting election results clearly.</p>
+        <p class="lead">A spreadsheet-data project that recalculates election seat allocation from candidate vote data using party totals, candidate ranking, and D'Hondt comparative figures.</p>
         <div class="actions">
-          <a class="button button-primary" href="#charts">View charts</a>
-          <a class="button" href="Elections.pdf" target="_blank" rel="noopener">Open PDF report</a>
-          <a class="button" href="https://github.com/jibranthedecoder/excel-election-seat-allocation" target="_blank" rel="noopener">GitHub repository</a>
+          <a class="button button-primary" href="#explorer">Open result explorer</a>
+          <a class="button" href="data/processed/dhondt-results.csv">Calculated results CSV</a>
+          <a class="button" href="data/raw/candidate-votes.csv">Candidate data CSV</a>
+          <a class="button" href="Elections.pdf" target="_blank" rel="noopener">Original PDF report</a>
         </div>
       </div>
       <aside class="summary-card">
-        <p class="eyebrow">Analysis summary</p>
+        <p class="eyebrow">Validated result summary</p>
         <div class="metric-grid">
           <div class="metric"><strong>20</strong><small>allocated seats</small></div>
+          <div class="metric"><strong>219</strong><small>candidates</small></div>
+          <div class="metric"><strong>7</strong><small>parties with seats</small></div>
           <div class="metric"><strong>D'Hondt</strong><small>method logic</small></div>
-          <div class="metric"><strong>Excel</strong><small>source tool</small></div>
-          <div class="metric"><strong>3</strong><small>charts</small></div>
         </div>
-        <p class="note">The source material is used for learning and analysis. The repository presents the calculation method as an independent spreadsheet/data project.</p>
+        <p class="note">The corrected calculation uses party/list total votes divided by each candidate's rank inside the party/list.</p>
       </aside>
     </section>
 
@@ -242,24 +330,70 @@
         <p class="eyebrow">Calculation workflow</p>
         <h2>How the result is calculated</h2>
         <ol class="steps">
-          <li>Import or list candidate vote data.</li>
+          <li>Import candidate vote data.</li>
           <li>Group candidates by party or list.</li>
           <li>Calculate total votes for each group.</li>
-          <li>Generate comparative figures for candidates.</li>
-          <li>Sort all candidates by comparative figure.</li>
-          <li>Select the top candidates according to the number of seats.</li>
+          <li>Rank candidates inside their party by personal votes.</li>
+          <li>Calculate comparative figures.</li>
+          <li>Sort all candidates by comparative figure and select the top 20.</li>
         </ol>
       </article>
+      <article class="formula-card">
+        <p class="eyebrow">Formula</p>
+        <h2>D'Hondt comparative figure</h2>
+        <div class="formula">comparative figure = party total votes / candidate rank inside party</div>
+        <p class="note">This fixes the common mistake of dividing each candidate's own personal votes by 1, 2, 3, and so on.</p>
+      </article>
+    </section>
+
+    <section class="explorer-shell" id="explorer">
+      <p class="eyebrow">Interactive result explorer</p>
+      <h2>Search, filter, and inspect the calculated result.</h2>
+      <div class="controls">
+        <input id="searchInput" type="search" placeholder="Search candidate or party..." autocomplete="off" />
+        <select id="partyFilter" aria-label="Filter by party"><option value="all">All parties</option></select>
+        <select id="viewMode" aria-label="View mode"><option value="elected">Elected only</option><option value="all">All candidates</option></select>
+      </div>
+      <div class="toolbar" aria-label="Quick filters">
+        <button class="chip is-active" type="button" data-sort="comparison">Sort by comparative figure</button>
+        <button class="chip" type="button" data-sort="votes">Sort by candidate votes</button>
+        <button class="chip" type="button" data-sort="party">Sort by party</button>
+      </div>
+      <p class="note" id="resultCount">Loading data...</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Seat</th>
+              <th>Candidate</th>
+              <th>Party</th>
+              <th class="num">Candidate votes</th>
+              <th class="num">Party total</th>
+              <th class="num">Party rank</th>
+              <th class="num">Comparative figure</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="resultRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="grid">
       <article class="card">
-        <p class="eyebrow">Project focus</p>
-        <h2>What this demonstrates</h2>
-        <ol class="steps">
-          <li>Handling a larger dataset in a spreadsheet.</li>
-          <li>Using sorting and ranking logic.</li>
-          <li>Connecting calculations to visual result interpretation.</li>
-          <li>Documenting assumptions and calculation method.</li>
-          <li>Turning an Excel task into a presentable data-analysis project.</li>
-        </ol>
+        <p class="eyebrow">Seat summary</p>
+        <h2>Calculated seats by party</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Party</th><th class="num">Votes</th><th class="num">Seats</th></tr></thead>
+            <tbody id="partyRows"></tbody>
+          </table>
+        </div>
+      </article>
+      <article class="card">
+        <p class="eyebrow">Validation</p>
+        <h2>Why this version is safer</h2>
+        <p class="muted">The first spreadsheet export could be misread as a personal-vote division table. This version documents the corrected D'Hondt calculation and keeps the cleaned source data and processed results as separate CSV files.</p>
       </article>
     </section>
 
@@ -287,5 +421,195 @@
       </article>
     </section>
   </main>
+
+  <script>
+    const electedData = [
+      { seat: 1, candidate: 'Marin Sanna', party: 'SDP', candidate_votes: 35628, party_total_votes: 80131, party_rank: 1, comparison_figure: 80131.0 },
+      { seat: 2, candidate: 'Ikonen Anna-Kaisa', party: 'KOK', candidate_votes: 11428, party_total_votes: 66545, party_rank: 1, comparison_figure: 66545.0 },
+      { seat: 3, candidate: 'Bergbom Miko', party: 'PS', candidate_votes: 10525, party_total_votes: 62496, party_rank: 1, comparison_figure: 62496.0 },
+      { seat: 4, candidate: 'Merinen Ville', party: 'SDP', candidate_votes: 6274, party_total_votes: 80131, party_rank: 2, comparison_figure: 40065.5 },
+      { seat: 5, candidate: 'Kiuru Pauli', party: 'KOK', candidate_votes: 10982, party_total_votes: 66545, party_rank: 2, comparison_figure: 33272.5 },
+      { seat: 6, candidate: 'Vigelius Joakim', party: 'PS', candidate_votes: 10113, party_total_votes: 62496, party_rank: 2, comparison_figure: 31248.0 },
+      { seat: 7, candidate: 'Nurminen Ilmari', party: 'SDP', candidate_votes: 4781, party_total_votes: 80131, party_rank: 3, comparison_figure: 26710.333333 },
+      { seat: 8, candidate: 'Tynkkynen Oras', party: 'VIHR', candidate_votes: 5401, party_total_votes: 23241, party_rank: 1, comparison_figure: 23241.0 },
+      { seat: 9, candidate: 'Vikman Sofia', party: 'KOK', candidate_votes: 7548, party_total_votes: 66545, party_rank: 3, comparison_figure: 22181.666667 },
+      { seat: 10, candidate: 'Ovaska Jouni', party: 'KESK', candidate_votes: 6376, party_total_votes: 22010, party_rank: 1, comparison_figure: 22010.0 },
+      { seat: 11, candidate: 'Kontula Anna', party: 'VAS', candidate_votes: 4909, party_total_votes: 21307, party_rank: 1, comparison_figure: 21307.0 },
+      { seat: 12, candidate: 'Puisto Sakari', party: 'PS', candidate_votes: 6592, party_total_votes: 62496, party_rank: 3, comparison_figure: 20832.0 },
+      { seat: 13, candidate: 'Asell Marko', party: 'SDP', candidate_votes: 4540, party_total_votes: 80131, party_rank: 4, comparison_figure: 20032.75 },
+      { seat: 14, candidate: 'Tanus Sari', party: 'KD', candidate_votes: 6117, party_total_votes: 16912, party_rank: 1, comparison_figure: 16912.0 },
+      { seat: 15, candidate: 'Satonen Arto', party: 'KOK', candidate_votes: 6029, party_total_votes: 66545, party_rank: 4, comparison_figure: 16636.25 },
+      { seat: 16, candidate: 'Lyly Lauri', party: 'SDP', candidate_votes: 4533, party_total_votes: 80131, party_rank: 5, comparison_figure: 16026.2 },
+      { seat: 17, candidate: 'Savio Sami', party: 'PS', candidate_votes: 6012, party_total_votes: 62496, party_rank: 4, comparison_figure: 15624.0 },
+      { seat: 18, candidate: 'Viitanen Pia', party: 'SDP', candidate_votes: 4112, party_total_votes: 80131, party_rank: 6, comparison_figure: 13355.166667 },
+      { seat: 19, candidate: 'Jäntti Aleksi', party: 'KOK', candidate_votes: 4157, party_total_votes: 66545, party_rank: 5, comparison_figure: 13309.0 },
+      { seat: 20, candidate: 'Niemi Veijo', party: 'PS', candidate_votes: 3135, party_total_votes: 62496, party_rank: 5, comparison_figure: 12499.2 }
+    ];
+
+    const partySummary = [
+      { party: 'SDP', total_votes: 80131, seats: 6 },
+      { party: 'KOK', total_votes: 66545, seats: 5 },
+      { party: 'PS', total_votes: 62496, seats: 5 },
+      { party: 'VIHR', total_votes: 23241, seats: 1 },
+      { party: 'KESK', total_votes: 22010, seats: 1 },
+      { party: 'VAS', total_votes: 21307, seats: 1 },
+      { party: 'KD', total_votes: 16912, seats: 1 },
+      { party: 'LIIKE', total_votes: 7899, seats: 0 },
+      { party: 'VL', total_votes: 2926, seats: 0 },
+      { party: 'LIBE', total_votes: 2080, seats: 0 },
+      { party: 'RKP', total_votes: 937, seats: 0 },
+      { party: 'KRIP', total_votes: 654, seats: 0 },
+      { party: 'EOP', total_votes: 601, seats: 0 },
+      { party: 'VKK', total_votes: 507, seats: 0 },
+      { party: 'SKP', total_votes: 473, seats: 0 },
+      { party: 'Piraattip.', total_votes: 450, seats: 0 },
+      { party: 'SML', total_votes: 369, seats: 0 },
+      { party: 'FP', total_votes: 151, seats: 0 },
+      { party: 'Muut', total_votes: 94, seats: 0 },
+      { party: 'SKE', total_votes: 83, seats: 0 }
+    ];
+
+    const allCandidatesFallback = electedData.map((item) => ({ ...item, elected: true }));
+    let allRows = allCandidatesFallback;
+    let sortMode = 'comparison';
+
+    const formatter = new Intl.NumberFormat('fi-FI', { maximumFractionDigits: 0 });
+    const figureFormatter = new Intl.NumberFormat('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    function normalize(value) {
+      return String(value || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').trim();
+    }
+
+    function csvRows(text) {
+      const lines = text.trim().split(/\r?\n/);
+      const headers = lines.shift().split(',');
+      return lines.map((line) => {
+        const cells = [];
+        let current = '';
+        let quoted = false;
+        for (let i = 0; i < line.length; i += 1) {
+          const char = line[i];
+          if (char === '"') quoted = !quoted;
+          else if (char === ',' && !quoted) { cells.push(current); current = ''; }
+          else current += char;
+        }
+        cells.push(current);
+        return Object.fromEntries(headers.map((header, index) => [header, cells[index] || '']));
+      });
+    }
+
+    function buildAllRows(candidates) {
+      const totals = Object.fromEntries(partySummary.map((item) => [item.party, Number(item.total_votes)]));
+      const electedLookup = new Map(electedData.map((item) => [`${item.candidate}|${item.party}`, item]));
+      const grouped = new Map();
+      candidates.forEach((candidate) => {
+        if (!grouped.has(candidate.party)) grouped.set(candidate.party, []);
+        grouped.get(candidate.party).push(candidate);
+      });
+
+      const rows = [];
+      grouped.forEach((partyCandidates, party) => {
+        partyCandidates.sort((a, b) => Number(b.total_votes) - Number(a.total_votes));
+        partyCandidates.forEach((candidate, index) => {
+          const partyRank = index + 1;
+          const partyTotal = totals[party] || partyCandidates.reduce((sum, item) => sum + Number(item.total_votes || 0), 0);
+          const elected = electedLookup.get(`${candidate.candidate}|${party}`);
+          rows.push({
+            seat: elected ? elected.seat : '',
+            candidate: candidate.candidate,
+            party,
+            candidate_votes: Number(candidate.total_votes || 0),
+            party_total_votes: partyTotal,
+            party_rank: partyRank,
+            comparison_figure: partyTotal / partyRank,
+            elected: Boolean(elected)
+          });
+        });
+      });
+      return rows;
+    }
+
+    function populateParties() {
+      const select = document.getElementById('partyFilter');
+      const parties = Array.from(new Set(partySummary.map((item) => item.party))).sort();
+      select.innerHTML = '<option value="all">All parties</option>' + parties.map((party) => `<option value="${party}">${party}</option>`).join('');
+    }
+
+    function renderPartySummary() {
+      const body = document.getElementById('partyRows');
+      body.innerHTML = partySummary.map((item) => `
+        <tr>
+          <td>${item.party}</td>
+          <td class="num">${formatter.format(item.total_votes)}</td>
+          <td class="num">${item.seats}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderRows() {
+      const query = normalize(document.getElementById('searchInput').value);
+      const party = document.getElementById('partyFilter').value;
+      const view = document.getElementById('viewMode').value;
+      let rows = allRows.filter((row) => {
+        const matchesQuery = !query || normalize(`${row.candidate} ${row.party}`).includes(query);
+        const matchesParty = party === 'all' || row.party === party;
+        const matchesView = view === 'all' || row.elected;
+        return matchesQuery && matchesParty && matchesView;
+      });
+
+      rows.sort((a, b) => {
+        if (sortMode === 'votes') return b.candidate_votes - a.candidate_votes;
+        if (sortMode === 'party') return a.party.localeCompare(b.party) || b.comparison_figure - a.comparison_figure;
+        return b.comparison_figure - a.comparison_figure;
+      });
+
+      const body = document.getElementById('resultRows');
+      body.innerHTML = rows.map((row) => `
+        <tr>
+          <td>${row.seat || ''}</td>
+          <td>${row.candidate}</td>
+          <td>${row.party}</td>
+          <td class="num">${formatter.format(row.candidate_votes)}</td>
+          <td class="num">${formatter.format(row.party_total_votes)}</td>
+          <td class="num">${row.party_rank}</td>
+          <td class="num">${figureFormatter.format(row.comparison_figure)}</td>
+          <td>${row.elected ? '<span class="elected-badge">Elected</span>' : '<span class="muted">Not elected</span>'}</td>
+        </tr>
+      `).join('');
+      document.getElementById('resultCount').textContent = `${rows.length} rows shown`;
+    }
+
+    async function loadCandidateData() {
+      try {
+        const response = await fetch('data/raw/candidate-votes.csv');
+        if (!response.ok) throw new Error('CSV not available');
+        const rows = csvRows(await response.text()).map((row) => ({
+          candidate: row.candidate,
+          party: row.party,
+          total_votes: Number(row.total_votes)
+        }));
+        allRows = buildAllRows(rows);
+      } catch (error) {
+        allRows = allCandidatesFallback;
+        document.getElementById('viewMode').value = 'elected';
+      }
+      renderRows();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', renderRows);
+    document.getElementById('partyFilter').addEventListener('change', renderRows);
+    document.getElementById('viewMode').addEventListener('change', renderRows);
+    document.querySelectorAll('[data-sort]').forEach((button) => {
+      button.addEventListener('click', () => {
+        sortMode = button.dataset.sort;
+        document.querySelectorAll('[data-sort]').forEach((item) => item.classList.toggle('is-active', item === button));
+        renderRows();
+      });
+    });
+
+    populateParties();
+    renderPartySummary();
+    loadCandidateData();
+  </script>
 </body>
 </html>
