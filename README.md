@@ -8,26 +8,38 @@ This project studies how election results can be calculated from candidate vote 
 
 The project is intentionally method-focused instead of being named after one specific electoral district. Source documents are used as learning and reference material. The repository itself presents the calculation method as an independent data-analysis project.
 
-## Current source files
+## Current repository state
 
-The uploaded files are currently kept at the repository root because they were added through GitHub upload. They are documented here before further cleanup or rebuilding.
+The uploaded source files are currently stored at the repository root. They are kept in place for now so that existing links and the project page do not break.
 
-| Current file | Role | Clean target name |
-|---|---|---|
-| `Elections.pdf` | Original result/report PDF | `docs/original/election-results-source.pdf` |
-| `chart-1.png` | Supporting chart screenshot | `assets/screenshots/party-vote-share.png` |
-| `chart-2.png` | Supporting chart screenshot | `assets/screenshots/seat-allocation-chart.png` |
-| `chart-3.png` | Supporting chart screenshot | `assets/screenshots/comparative-figures-chart.png` |
-| `index.html` | Uploaded HTML export / future web page | `index.html` |
+| Current file | Role |
+|---|---|
+| [`Elections.pdf`](Elections.pdf) | Original result/report PDF |
+| [`chart-1.png`](chart-1.png) | Supporting chart screenshot |
+| [`chart-2.png`](chart-2.png) | Supporting chart screenshot |
+| [`chart-3.png`](chart-3.png) | Supporting chart screenshot |
+| [`index.html`](index.html) | Project presentation page |
 
-## Repository structure
+## Planned clean names
+
+When binary file renaming is performed safely, the preferred clean structure is:
+
+```text
+docs/original/election-results-source.pdf
+assets/screenshots/party-vote-share.png
+assets/screenshots/seat-allocation-chart.png
+assets/screenshots/comparative-figures-chart.png
+index.html
+```
+
+## Repository folders
 
 ```text
 docs/original/        Original assignment or reference documents
 data/raw/             Raw candidate vote data, if added later
 excel/                Working Excel workbook and final spreadsheet version
 assets/screenshots/   Screenshots used for documentation
-index.html            Interactive or presentation-oriented web version
+index.html            Presentation-oriented project page
 ```
 
 ## Calculation idea
